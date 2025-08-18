@@ -1,7 +1,188 @@
+// === SUPABASE CONNECTION (CODE MPYA) ===
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+// Add this to your initializeApp() function
+async function initializeApp() {
+    // ... existing code ...
+    
+    // Load reports from database
+    await loadReportsFromSupabase();
+}
+
+
+// Example function to fetch data
+async function fetchData() {
+  const { data, error } = await supabase
+    .from('weekly_reports')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching data:', error);
+    return;
+  }
+  
+  console.log('Data:', data);
+  // Process data here
+}
+// Function to save report to Supabase
+async function saveReportToSupabase() {
+  const reportData = collectReportData();
+  
+  const { data, error } = await supabase
+    .from('weekly_reports')  // Badilisha na jina la table yako
+    .insert([
+      { 
+        line: reportData.line,
+        from_location: reportData.from,
+        to_location: reportData.to,
+        team: reportData.team,
+        location: reportData.location,
+        ref: reportData.ref,
+        report_date: reportData.date,
+        work_days: reportData.workDays,
+        created_at: new Date()
+      }
+    ]);
+  
+  if (error) {
+    console.error('Error saving report:', error);
+    alert('Failed to save report to database');
+    return false;
+  }
+  
+  console.log('Report saved:', data);
+  alert('Report saved successfully!');
+  return true;
+}
+// Function to load saved reports
+async function loadSavedReports() {
+  const { data, error } = await supabase
+    .from('weekly_reports')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error loading reports:', error);
+    return;
+  }async function saveReportToSupabase() {
+    const reportData = collectReportData();
+    
+    if (!validateReportData(reportData)) {
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const saveButton = event.target;
+        const originalText = saveButton.innerHTML;
+        saveButton.innerHTML = '<i class="bi bi-spinner-border spinner-border-sm"></i> Saving...';
+        saveButton.disabled = true;
+        
+        // Prepare data for database
+        const dbData = {
+            line: reportData.line,
+            from_person: reportData.from,
+            to_person: reportData.to,
+            report_date: reportData.reportDate,
+            team: reportData.team,
+            location: reportData.location,
+            reference: reportData.ref,
+            work_days: JSON.stringify(reportData.workDays),
+            status: 'completed',
+            created_at: new Date().toISOString()
+        };
+        
+        // Insert into Supabase
+        const { data, error } = await supabase
+            .from('weekly_reports')
+            .insert([dbData])
+            .select();
+        
+        if (error) {
+            throw error;
+        }
+        
+        alert('Report saved to database successfully!');
+        
+        // Reset button
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error saving to database:', error);
+        alert('Error saving to database: ' + error.message);
+        
+        // Reset button
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    }
+}
+async function loadReportsFromSupabase() {
+    try {
+        const { data, error } = await supabase
+            .from('weekly_reports')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Merge with local storage reports
+        const dbReports = data.map(report => ({
+            id: report.id,
+            line: report.line,
+            from: report.from_person,
+            to: report.to_person,
+            reportDate: report.report_date,
+            team: report.team,
+            location: report.location,
+            ref: report.reference,
+            workDays: JSON.parse(report.work_days),
+            status: report.status,
+            savedAt: report.created_at,
+            source: 'database'
+        }));
+        
+        // Update the savedReports array
+        savedReports = [...savedReports, ...dbReports];
+        loadSavedReports();
+        
+    } catch (error) {
+        console.error('Error loading from database:', error);
+        alert('Error loading reports from database: ' + error.message);
+    }
+}
+
+  
+  // Display reports in a list
+  const reportsContainer = document.getElementById('savedReportsContainer');
+  reportsContainer.innerHTML = '';
+  
+  data.forEach(report => {
+    const reportItem = document.createElement('div');
+    reportItem.className = 'report-item';
+    reportItem.innerHTML = `
+      <h5>${report.line} - ${formatDate(report.report_date)}</h5>
+      <p>Team: ${report.team}</p>
+      <button onclick="loadReport(${report.id})">Load</button>
+    `;
+    reportsContainer.appendChild(reportItem);
+  });
+}
+
+
+// === CODE YAKO YA ZAMANI INAANZA HAPA ===
+// (Acha code yako ya zamani hapa)
+
 // Set today's date as default
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     document.getElementById('dateInput').value = today.toISOString().split('T')[0];
+// Call Supabase function to fetch data
+fetchData();
+
     
     // Add initial work day
     addWorkDay();
