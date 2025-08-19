@@ -81,19 +81,19 @@ async function loadSavedReports() {
         saveButton.innerHTML = '<i class="bi bi-spinner-border spinner-border-sm"></i> Saving...';
         saveButton.disabled = true;
         
-        // Prepare data for database
-        const dbData = {
-            line: reportData.line,
-            from_person: reportData.from,
-            to_person: reportData.to,
-            report_date: reportData.reportDate,
-            team: reportData.team,
-            location: reportData.location,
-            reference: reportData.ref,
-            work_days: JSON.stringify(reportData.workDays),
-            status: 'completed',
-            created_at: new Date().toISOString()
-        };
+  // TUMIA HIVI (new schema):
+const dbData = {
+    week_start: reportData.weekStart,
+    week_end: reportData.weekEnd,
+    total_disc_washed: reportData.totalDiscWashed,
+    porcelain_replaced: reportData.porcelainReplaced,
+    broken_disc_replaced: reportData.brokenDiscReplaced,
+    old_glass_replaced_flushed: reportData.oldGlassReplaced,
+    socket_tongue_replaced: reportData.socketTongueReplaced,
+    u_bolt_replaced: reportData.uBoltReplaced,
+    notes: reportData.notes
+    // user_id itawekwa automatically na trigger
+};
         
         // Insert into Supabase
         const { data, error } = await supabase
